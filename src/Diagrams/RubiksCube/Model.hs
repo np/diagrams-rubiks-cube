@@ -49,30 +49,30 @@ import Data.Functor.Rep (Representable (..), distributeRep, tabulated)
 type Aut a = Iso' a a
 
 -- Natural numbers
-data N = Z | S N
+data N = Zero | Succ N
 
 -- Some type synonyms for natural numbers
-type Zero = 'Z
-type One = 'S Zero
-type Two = 'S One
-type Three = 'S Two
-type Four = 'S Three
+type Zero = 'Zero
+type One = 'Succ Zero
+type Two = 'Succ One
+type Three = 'Succ Two
+type Four = 'Succ Three
 
 -- | Finite type with n inhabitants
 data Fin :: N -> * where
-  FinZ :: Fin ('S n)
-  FinS :: Fin n -> Fin ('S n)
+  FinZ :: Fin ('Succ n)
+  FinS :: Fin n -> Fin ('Succ n)
 
-zero :: Fin ('S n)
+zero :: Fin ('Succ n)
 zero = FinZ
 
-one :: Fin ('S ('S n))
+one :: Fin ('Succ ('Succ n))
 one = FinS zero
 
-two :: Fin ('S ('S ('S n)))
+two :: Fin ('Succ ('Succ ('Succ n)))
 two = FinS one
 
-three :: Fin ('S ('S ('S ('S n))))
+three :: Fin ('Succ ('Succ ('Succ ('Succ n))))
 three = FinS two
 
 -- | A list of fixed length 3.
