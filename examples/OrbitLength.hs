@@ -14,7 +14,7 @@ import Diagrams.RubiksCube.Move
 import Diagrams.RubiksCube.Model
 
 step :: RubiksCube a -> RubiksCube a
-step c = c ^. move R . rotateLeft
+step c = c ^. doMoves [R, Y]
 
 solvedRubiksCube :: RubiksCube Int
 solvedRubiksCube = RubiksCube (Cube f b l r u d)

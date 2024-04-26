@@ -21,7 +21,7 @@ import Diagrams.RubiksCube.Move (Move (..))
 import Diagrams.RubiksCube.Model
 
 import Control.Lens hiding ((#))
-import Diagrams.Prelude hiding (center, cube)
+import Diagrams.Prelude hiding (center, cube, E)
 import Diagrams.TwoD.Arrow (arrowFromLocatedTrail')
 import Diagrams.Trail (trailPoints)
 import qualified Diagrams.Prelude as P
@@ -183,6 +183,50 @@ moveArrowOptions =
     & arrowHead  .~ tri
     & arrowTail  .~ lineTail
 
+moveArrowH, moveArrowV
+  :: RubiksCubeBackend n b
+  => Bool
+  -> Colour Double
+  -> n
+  -> Diagram b
+moveArrowH rev arrColour n = moveArrow rev arrColour [p2 (0.2, n), p2 (2.8, n)]
+moveArrowV rev arrColour n = moveArrow rev arrColour [p2 (n, 0.2), p2 (n, 2.8)]
+
+moveArrowC
+  :: RubiksCubeBackend n b
+  => Bool
+  -> Colour Double
+  -> Diagram b
+moveArrowC True arrColour =
+    arr (p2 (0.5, 1.2)) (p2 (1.3, 2.5))
+  `atop`
+    arr (p2 (2.5, 1.8)) (p2 (1.7, 0.5))
+  where
+    arrOpts = moveArrowOptions & arrowShaft .~ quarterTurn' & arrowTail .~ noTail
+    quarterTurn' = arc xDir (0.25 @@ turn)
+    arr s e = arrowBetween' arrOpts e s # lc arrColour
+moveArrowC False arrColour =
+    arr (p2 (1.7, 2.5)) (p2 (2.5, 1.2))
+  `atop`
+    arr (p2 (1.3, 0.5)) (p2 (0.5, 1.8))
+  where
+    arrOpts = moveArrowOptions & arrowShaft .~ quarterTurn' & arrowTail .~ noTail
+    quarterTurn' = arc xDir (-0.25 @@ turn)
+    arr s e = arrowBetween' arrOpts s e # lc arrColour
+
+moveArrowB
+  :: RubiksCubeBackend n b
+  => Bool
+  -> Colour Double
+  -> Offsets n
+  -> n
+  -> Diagram b
+moveArrowB rev arrColour (Offsets dx dy) n =
+    moveArrow rev arrColour (trailPoints arrowTrail)
+  where backOff = p2 (3.3 + n * dx, 1.2 + n * dy)
+        arrowOffsets = [(0 ^& 2.1), ((-2.1) ^& 0)]
+        arrowTrail = P.at (fromOffsets arrowOffsets) backOff
+
 moveArrow
   :: RubiksCubeBackend n b
   => Bool
@@ -193,7 +237,7 @@ moveArrow rev arrColour points =
   lc arrColour $ arrowFromLocatedTrail' moveArrowOptions $ fromVertices $
     if rev then reverse points else points
 
-drawMoveU, drawMoveD, drawMoveL, drawMoveR, drawMoveF, drawMoveB
+drawMoveU, drawMoveD, drawMoveL, drawMoveR, drawMoveF, drawMoveB, drawMoveX, drawMoveY, drawMoveZ, drawMoveE, drawMoveM, drawMoveS
   :: (RubiksCubeBackend n b, Color c)
   => Bool -- ^ invert
   -> Colour Double
@@ -201,44 +245,70 @@ drawMoveU, drawMoveD, drawMoveL, drawMoveR, drawMoveF, drawMoveB
   -> RubiksCube c
   -> Diagram b
 drawMoveU rev arrColour off c =
-  atop (moveArrow rev arrColour [p2 (2.8, 2.5), p2 (0.2, 2.5)])
+  atop (moveArrowH (not rev) arrColour 2.5)
        (drawRubiksCube off c)
 drawMoveD rev arrColour (Offsets dx dy) c =
-  atop (moveArrow rev arrColour [p2 (0.2, 0.5), p2 (2.8, 0.5)])
-       (drawRubiksCube (Offsets dx (-dy)) c)
+    moveArrowH rev arrColour 0.5
+  `atop`
+    drawRubiksCube (Offsets dx (-dy)) c
 drawMoveL rev arrColour off c =
-  atop (moveArrow rev arrColour [p2 (0.5, 2.8), p2 (0.5, 0.2)])
-       (drawRubiksCube off c)
+    moveArrowV (not rev) arrColour 0.5
+  `atop`
+    drawRubiksCube off c
 drawMoveR rev arrColour off c =
-  atop (moveArrow rev arrColour [p2 (2.5, 0.2), p2 (2.5, 2.8)])
-       (drawRubiksCube off c)
-drawMoveF True arrColour off c =
-    arr (p2 (0.5, 1.2)) (p2 (1.3, 2.5))
-  `atop`
-    arr (p2 (2.5, 1.8)) (p2 (1.7, 0.5))
+    moveArrowV rev arrColour 2.5
   `atop`
     drawRubiksCube off c
-  where
-    arrOpts = moveArrowOptions & arrowShaft .~ quarterTurn' & arrowTail .~ noTail
-    quarterTurn' = arc xDir (0.25 @@ turn)
-    arr s e = arrowBetween' arrOpts e s # lc arrColour
-drawMoveF False arrColour off c =
-    arr (p2 (1.7, 2.5)) (p2 (2.5, 1.2))
-  `atop`
-    arr (p2 (1.3, 0.5)) (p2 (0.5, 1.8))
+drawMoveF rev arrColour off c =
+    moveArrowC rev arrColour
   `atop`
     drawRubiksCube off c
-  where
-    arrOpts = moveArrowOptions & arrowShaft .~ quarterTurn' & arrowTail .~ noTail
-    quarterTurn' = arc xDir (-0.25 @@ turn)
-    arr s e = arrowBetween' arrOpts s e # lc arrColour
-drawMoveB rev arrColour off@(Offsets dx dy) c =
-    moveArrow rev arrColour (trailPoints arrowTrail)
+drawMoveB rev arrColour off c =
+    moveArrowB rev arrColour off 3
   `atop`
     drawRubiksCube off c
-  where backOff = p2 (3.3 + 3 * dx, 1.2 + 3 * dy)
-        arrowOffsets = [(0 ^& 2.1), ((-2.1) ^& 0)]
-        arrowTrail = P.at (fromOffsets arrowOffsets) backOff
+
+-- X: Rotate the entire cube on R
+drawMoveX rev arrColour off c =
+    moveArrowV rev arrColour 0.5
+  `atop`
+    moveArrowV rev arrColour 1.5
+  `atop`
+    drawMoveR rev arrColour off c
+
+-- Y: Rotate the entire cube on U
+drawMoveY rev arrColour off c =
+    moveArrowH (not rev) arrColour 1.5
+  `atop`
+    moveArrowH (not rev) arrColour 0.5
+  `atop`
+    drawMoveU rev arrColour off c
+
+-- Z: Rotate the entire cube on F
+drawMoveZ rev arrColour off c =
+  moveArrowB (not rev) arrColour off 3
+  `atop`
+  moveArrowB (not rev) arrColour off 1
+  `atop`
+  drawMoveF rev arrColour off c
+
+-- M: Middle layer move similar to L
+drawMoveM rev arrColour off c =
+    moveArrowV (not rev) arrColour 1.5
+  `atop`
+    drawRubiksCube off c
+
+-- E: Equatorial layer move similar to D
+drawMoveE rev arrColour off c =
+    moveArrowH rev arrColour 1.5
+  `atop`
+    drawRubiksCube off c
+
+-- S: Standing layer move similar to F
+drawMoveS rev arrColour off c =
+    moveArrowB rev arrColour off 1
+  `atop`
+    drawRubiksCube off c
 
 -- | Draw the Rubik's cube in parallel perspective with an arrow indicating the
 -- next move. If the the bottom layer is moved, the cube will be shown from below.
@@ -270,6 +340,18 @@ drawMove F  = drawMoveF False
 drawMove F' = drawMoveF True
 drawMove B  = drawMoveB False
 drawMove B' = drawMoveB True
+drawMove X  = drawMoveX False
+drawMove X' = drawMoveX True
+drawMove Y  = drawMoveY False
+drawMove Y' = drawMoveY True
+drawMove Z  = drawMoveZ False
+drawMove Z' = drawMoveZ True
+drawMove M  = drawMoveM False
+drawMove M' = drawMoveM True
+drawMove E  = drawMoveE False
+drawMove E' = drawMoveE True
+drawMove S  = drawMoveS False
+drawMove S' = drawMoveS True
 
 data MovesSettings n =
   MovesSettings { _moveSep :: n -- ^ space between cubes

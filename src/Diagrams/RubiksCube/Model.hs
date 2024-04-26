@@ -441,6 +441,15 @@ moveB =
   cong cube $ cong backCols cycleRight
             . cong backSide rotateSideCW
 
+moveM :: Aut (RubiksCube a)
+moveM = rotateDown . from moveL . from moveR
+
+moveE :: Aut (RubiksCube a)
+moveE = rotateRight . moveU . from moveD
+
+moveS :: Aut (RubiksCube a)
+moveS = rotateCW . from moveF . moveB
+
 -- | Perform a move.
 move :: Move -> Aut (RubiksCube a)
 move D  = moveD
@@ -455,6 +464,18 @@ move F  = moveF
 move F' = from moveF
 move B  = moveB
 move B' = from moveB
+move X  = rotateUp
+move X' = rotateDown
+move Y  = rotateLeft
+move Y' = rotateRight
+move Z  = rotateCW
+move Z' = rotateCCW
+move M  = moveM
+move M' = from moveM
+move E  = moveE
+move E' = from moveE
+move S  = moveS
+move S' = from moveS
 
 -- | Perform a list of moves.
 doMoves :: [Move] -> Aut (RubiksCube a)
