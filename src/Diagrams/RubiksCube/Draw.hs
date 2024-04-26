@@ -21,6 +21,7 @@ import Diagrams.RubiksCube.Move (Move (..))
 import Diagrams.RubiksCube.Model
 
 import Control.Lens hiding ((#))
+import Diagrams.Core.Types (keyVal, opacityGroup)
 import Diagrams.Prelude hiding (center, cube)
 import Diagrams.TwoD.Arrow (arrowFromLocatedTrail')
 import Diagrams.Trail (trailPoints)
@@ -152,7 +153,7 @@ drawRubiksCube
   => Offsets n
   -> RubiksCube c
   -> Diagram b
-drawRubiksCube (Offsets dx dy) c' = position $
+drawRubiksCube (Offsets dx dy) c' = class_ "cube" . position $
   [ f ] ++
   sides ++
   [ b ]
@@ -166,13 +167,16 @@ drawRubiksCube (Offsets dx dy) c' = position $
     dx' = r2 (1,0)
     dy' = r2 (0,1)
     dz' = r2 (dx,dy)
-    drawSide' dx1 dx2 side = drawSide dx1 dx2 (c' ^. cube . side)
-    f = (p2 (0, 0), drawSide' dx' dy' frontSide)
-    b = (p2 (3*dx, 3+3*dy), drawSide' dx' (-dy') backSide)
-    r = (p2 (3,0), drawSide' dz' dy' rightSide)
-    l = (p2 (3*dx, 3*dy), drawSide' (-dz') dy' leftSide)
-    u = (p2 (0,3), drawSide' dx' dz' upSide)
-    d = (p2 (3*dx, 3*dy), drawSide' dx' (-dz') downSide)
+    drawSide' dx1 dx2 nm side = class_ nm (drawSide dx1 dx2 (c' ^. cube . side))
+    f = (p2 (0, 0), drawSide' dx' dy' "front" frontSide)
+    b = (p2 (3*dx, 3+3*dy), drawSide' dx' (-dy') "back" backSide)
+    r = (p2 (3,0), drawSide' dz' dy' "right" rightSide)
+    l = (p2 (3*dx, 3*dy), drawSide' (-dz') dy' "left" leftSide)
+    u = (p2 (0,3), drawSide' dx' dz' "up" upSide)
+    d = (p2 (3*dx, 3*dy), drawSide' dx' (-dz') "down" downSide)
+
+class_ :: RubiksCubeBackend n b => String -> Diagram b -> Diagram b
+class_ val sub = sub # opacityGroup 1 # keyVal ("class", val)
 
 moveArrowOptions :: (Num n, RealFloat n, Fractional n, Typeable n) => ArrowOpts n
 moveArrowOptions =
