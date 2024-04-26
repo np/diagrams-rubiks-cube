@@ -51,6 +51,9 @@ solvedRubiksCube = RubiksCube (Cube f b l r u d)
     u = pure (sRGB24 61 153 112) -- olive
     d = pure (sRGB24 0 116 217) -- blue
 
+class_ :: RubiksCubeBackend n b => String -> Diagram b -> Diagram b
+class_ val sub = sub # opacityGroup 1 # keyVal ("class", val)
+
 -- > {-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 -- > import Diagrams.RubiksCube
 -- > drawSideDia =
@@ -73,7 +76,8 @@ drawSide
 drawSide (dx :: V2 n) dy side = mconcat $ do
   (y, row) <- count rows
   let Vec3 l c r = side ^. row
-  [drawField 0 y l, drawField 1 y c, drawField 2 y r]
+  [class_ ("row" <> show y) (mconcat
+    [drawField 0 y l, drawField 1 y c, drawField 2 y r])]
   where
     count = zip [(0 :: Int)..]
     rows = [bottomRow, middleRow, topRow]
@@ -83,6 +87,7 @@ drawSide (dx :: V2 n) dy side = mconcat $ do
       :: (Renderable (Path V2 n) b, N b ~ n, V b ~ V2, Color c)
       => Int -> Int -> c -> Diagram b
     drawField x y color =
+      class_ ("col" <> show x) $
       fromVertices [pos x y, pos (x+1) y, pos (x+1) (y+1), pos x (y+1), pos x y]
         # mapLoc closeTrail
         # trailLike
@@ -174,9 +179,6 @@ drawRubiksCube (Offsets dx dy) c' = class_ "cube" . position $
     l = (p2 (3*dx, 3*dy), drawSide' (-dz') dy' "left" leftSide)
     u = (p2 (0,3), drawSide' dx' dz' "up" upSide)
     d = (p2 (3*dx, 3*dy), drawSide' dx' (-dz') "down" downSide)
-
-class_ :: RubiksCubeBackend n b => String -> Diagram b -> Diagram b
-class_ val sub = sub # opacityGroup 1 # keyVal ("class", val)
 
 moveArrowOptions :: (Num n, RealFloat n, Fractional n, Typeable n) => ArrowOpts n
 moveArrowOptions =
