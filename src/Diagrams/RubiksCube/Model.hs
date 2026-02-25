@@ -442,7 +442,7 @@ moveB =
             . cong backSide rotateSideCW
 
 moveM :: Aut (RubiksCube a)
-moveM = rotateDown . from moveL . from moveR
+moveM = rotateDown . from moveL . moveR
 
 moveE :: Aut (RubiksCube a)
 moveE = rotateRight . moveU . from moveD
