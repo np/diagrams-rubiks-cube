@@ -2,7 +2,8 @@
 # nix flake init -t github:srid/haskell-flake
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  # nixpkgs.url = "github:NixOS/nixpkgs?rev=aaf7d6d1c565b06bd6d785bd8b1362d2527d961e";
+    nixpkgs.url = "github:NixOS/nixpkgs/haskell-updates";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
   };
@@ -20,6 +21,7 @@
           # By default, this is pkgs.haskellPackages.
           # You may also create your own. See https://community.flake.parts/haskell-flake/package-set
           # basePackages = pkgs.haskellPackages;
+          basePackages = pkgs.haskell.packages.ghc910;
 
           # Extra package information. See https://community.flake.parts/haskell-flake/dependency
           #
